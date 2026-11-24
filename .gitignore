@@ -1,0 +1,11 @@
+# Arquivos brutos do SQL Server (pesados, não subir ao GitHub)
+bruto/
+
+# Scripts de conversão (opcionais no deploy)
+converter.py
+converter.ps1
+
+# Sistema
+Thumbs.db
+.DS_Store
+desktop.ini

@@ -1,0 +1,1 @@
+var DETALHES_OUTROS={"(10814 linhas afetadas)":{"tabela":"(10814 linhas afetadas)","descricao":"","modo":"","unica":"","campos":[],"indices":[]}};

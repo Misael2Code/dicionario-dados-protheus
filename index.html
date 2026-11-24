@@ -1,0 +1,508 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Dicionário de Dados · TOTVS Protheus</title>
+<style>
+/* ===== RESET & BASE ===== */
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#f5f7fa;--bg-card:#fff;--border:#dfe3e8;--text:#1e293b;--text-sec:#64748b;
+  --primary:#2563eb;--primary-hover:#1d4ed8;--primary-light:#dbeafe;
+  --green:#16a34a;--green-bg:#dcfce7;
+  --orange:#ea580c;--orange-bg:#ffedd5;
+  --purple:#7c3aed;--purple-bg:#ede9fe;
+  --red:#dc2626;--red-bg:#fee2e2;
+  --cyan:#0891b2;--cyan-bg:#cffafe;
+  --shadow:0 1px 3px rgba(0,0,0,.1),0 1px 2px rgba(0,0,0,.06);
+  --shadow-lg:0 4px 12px rgba(0,0,0,.1);
+  --radius:8px;
+}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;background:var(--bg);color:var(--text);line-height:1.5;min-height:100vh}
+a{color:var(--primary);text-decoration:none}
+
+/* ===== HEADER ===== */
+.header{background:linear-gradient(135deg,#1e3a5f 0%,#2563eb 100%);color:#fff;padding:20px 0;position:sticky;top:0;z-index:100;box-shadow:var(--shadow-lg)}
+.header-inner{max-width:1400px;margin:0 auto;padding:0 24px;display:flex;align-items:center;gap:16px;flex-wrap:wrap}
+.header h1{font-size:1.5rem;font-weight:700;white-space:nowrap}
+.header .subtitle{font-size:.85rem;opacity:.8}
+.header .badge{background:rgba(255,255,255,.2);padding:3px 10px;border-radius:20px;font-size:.75rem;font-weight:600}
+
+/* ===== CONTAINER ===== */
+.container{max-width:1400px;margin:0 auto;padding:24px}
+
+/* ===== SEARCH BAR ===== */
+.search-bar{display:flex;gap:12px;align-items:center;margin-bottom:20px;flex-wrap:wrap}
+.search-bar input{flex:1;min-width:280px;padding:12px 16px;border:2px solid var(--border);border-radius:var(--radius);font-size:1rem;transition:border-color .2s;outline:none;background:var(--bg-card)}
+.search-bar input:focus{border-color:var(--primary)}
+.search-bar .counter{color:var(--text-sec);font-size:.9rem;white-space:nowrap;font-weight:500}
+
+/* ===== TABLE LIST ===== */
+.table-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(340px,1fr));gap:12px}
+.table-card{background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius);padding:16px;cursor:pointer;transition:all .15s;display:flex;flex-direction:column;gap:6px}
+.table-card:hover{border-color:var(--primary);box-shadow:var(--shadow-lg);transform:translateY(-1px)}
+.table-card .tc-header{display:flex;align-items:center;gap:10px}
+.table-card .tc-code{font-weight:700;font-size:1.1rem;color:var(--primary);font-family:'Cascadia Code','Fira Code',monospace;min-width:50px}
+.table-card .tc-desc{color:var(--text);font-size:.9rem;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.table-card .tc-meta{display:flex;gap:8px;font-size:.75rem;color:var(--text-sec)}
+.table-card .tc-meta span{background:var(--bg);padding:2px 8px;border-radius:4px}
+.tc-match{font-size:.75rem;color:var(--orange);font-weight:600}
+
+/* ===== PAGINATION ===== */
+.pagination{display:flex;justify-content:center;align-items:center;gap:8px;margin-top:24px;flex-wrap:wrap}
+.pagination button{padding:8px 14px;border:1px solid var(--border);background:var(--bg-card);border-radius:var(--radius);cursor:pointer;font-size:.9rem;transition:all .15s}
+.pagination button:hover:not(:disabled){border-color:var(--primary);color:var(--primary)}
+.pagination button:disabled{opacity:.4;cursor:default}
+.pagination button.active{background:var(--primary);color:#fff;border-color:var(--primary)}
+
+/* ===== DETAIL VIEW ===== */
+.detail-view{display:none}
+.detail-view.active{display:block}
+.list-view.hidden{display:none}
+
+.btn-back{display:inline-flex;align-items:center;gap:6px;padding:10px 18px;background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius);cursor:pointer;font-size:.9rem;font-weight:500;color:var(--text);transition:all .15s;margin-bottom:20px}
+.btn-back:hover{border-color:var(--primary);color:var(--primary)}
+.btn-back kbd{background:var(--bg);padding:1px 6px;border-radius:3px;font-size:.75rem;border:1px solid var(--border);font-family:inherit}
+
+/* Detail header card */
+.detail-header{background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius);padding:24px;margin-bottom:20px;box-shadow:var(--shadow)}
+.detail-header h2{font-size:1.6rem;margin-bottom:4px;display:flex;align-items:center;gap:12px}
+.detail-header h2 .dh-code{color:var(--primary);font-family:'Cascadia Code','Fira Code',monospace}
+.detail-header .dh-info{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px;margin-top:16px}
+.detail-header .dh-item{padding:12px;background:var(--bg);border-radius:var(--radius)}
+.detail-header .dh-item label{display:block;font-size:.7rem;text-transform:uppercase;letter-spacing:.5px;color:var(--text-sec);font-weight:600;margin-bottom:2px}
+.detail-header .dh-item span{font-size:.95rem;font-weight:500;word-break:break-all}
+
+/* Sections */
+.section{background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius);margin-bottom:20px;overflow:hidden;box-shadow:var(--shadow)}
+.section-title{padding:16px 20px;font-size:1rem;font-weight:700;background:var(--bg);border-bottom:1px solid var(--border);display:flex;align-items:center;gap:8px}
+.section-title .count{background:var(--primary-light);color:var(--primary);padding:2px 10px;border-radius:12px;font-size:.8rem}
+
+/* Indices table */
+.idx-table{width:100%;border-collapse:collapse;font-size:.9rem}
+.idx-table th{text-align:left;padding:10px 16px;background:var(--bg);font-weight:600;font-size:.8rem;text-transform:uppercase;letter-spacing:.5px;color:var(--text-sec);border-bottom:1px solid var(--border)}
+.idx-table td{padding:10px 16px;border-bottom:1px solid var(--border);font-family:'Cascadia Code','Fira Code',monospace;font-size:.85rem}
+.idx-table tr:last-child td{border-bottom:none}
+.idx-table tr:hover{background:var(--primary-light)}
+
+/* Fields table */
+.fields-search{padding:12px 20px;border-bottom:1px solid var(--border);background:var(--bg)}
+.fields-search input{width:100%;max-width:400px;padding:8px 12px;border:1px solid var(--border);border-radius:var(--radius);font-size:.9rem;outline:none}
+.fields-search input:focus{border-color:var(--primary)}
+
+.fields-table{width:100%;border-collapse:collapse;font-size:.85rem}
+.fields-table th{text-align:left;padding:10px 12px;background:var(--bg);font-weight:600;font-size:.75rem;text-transform:uppercase;letter-spacing:.5px;color:var(--text-sec);border-bottom:1px solid var(--border);position:sticky;top:0;z-index:1}
+.fields-table td{padding:8px 12px;border-bottom:1px solid var(--border);vertical-align:top}
+.fields-table tr:hover{background:#f8fafc}
+.fields-table .mono{font-family:'Cascadia Code','Fira Code',monospace;font-weight:500}
+.fields-table .num{text-align:center}
+
+/* Type badges */
+.badge-tipo{display:inline-block;padding:2px 8px;border-radius:4px;font-size:.75rem;font-weight:600;white-space:nowrap}
+.badge-tipo.Caractere{background:#dbeafe;color:#1e40af}
+.badge-tipo.Numerico,.badge-tipo.Numérico{background:var(--green-bg);color:var(--green)}
+.badge-tipo.Data{background:var(--orange-bg);color:var(--orange)}
+.badge-tipo.Logico,.badge-tipo.Lógico{background:var(--purple-bg);color:var(--purple)}
+.badge-tipo.Memo{background:var(--cyan-bg);color:var(--cyan)}
+
+/* Context badges */
+.badge-ctx{display:inline-block;padding:2px 8px;border-radius:4px;font-size:.75rem;font-weight:600}
+.badge-ctx.Real{background:var(--green-bg);color:var(--green)}
+.badge-ctx.Virtual{background:var(--purple-bg);color:var(--purple)}
+
+/* Obrig badges */
+.badge-obrig{display:inline-block;padding:2px 8px;border-radius:4px;font-size:.75rem;font-weight:600;background:var(--red-bg);color:var(--red)}
+
+/* Loading spinner */
+.loading{text-align:center;padding:40px;color:var(--text-sec)}
+.spinner{display:inline-block;width:32px;height:32px;border:3px solid var(--border);border-top-color:var(--primary);border-radius:50%;animation:spin .6s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+/* Responsive */
+@media(max-width:768px){
+  .header-inner{flex-direction:column;align-items:flex-start}
+  .table-grid{grid-template-columns:1fr}
+  .fields-table{font-size:.75rem}
+  .fields-table th,.fields-table td{padding:6px 8px}
+  .detail-header .dh-info{grid-template-columns:1fr 1fr}
+  .container{padding:12px}
+}
+
+/* Table wrapper */
+.table-scroll{overflow-x:auto}
+
+/* Highlight */
+mark{background:#fef08a;padding:0 2px;border-radius:2px}
+</style>
+</head>
+<body>
+
+<!-- Header -->
+<div class="header">
+  <div class="header-inner">
+    <h1>📋 Dicionário de Dados</h1>
+    <span class="subtitle">TOTVS Protheus</span>
+    <span class="badge" id="headerStats">Carregando...</span>
+  </div>
+</div>
+
+<!-- List View -->
+<div class="container list-view" id="listView">
+  <div class="search-bar">
+    <input type="text" id="searchInput" placeholder="Buscar por código da tabela, descrição ou nome de campo (ex: SA1, Clientes, A1_CGC)..." autofocus>
+    <span class="counter" id="counter"></span>
+  </div>
+  <div class="table-grid" id="tableGrid"></div>
+  <div class="pagination" id="pagination"></div>
+</div>
+
+<!-- Detail View -->
+<div class="container detail-view" id="detailView">
+  <button class="btn-back" id="btnBack" onclick="voltarLista()">← Voltar para tabelas <kbd>ESC</kbd></button>
+  <div id="detailContent">
+    <div class="loading"><div class="spinner"></div><p>Carregando detalhes...</p></div>
+  </div>
+</div>
+
+<!-- Data: tabelas_indice.js is loaded here -->
+<script src="dados/tabelas_indice.js"></script>
+
+<script>
+(function() {
+  'use strict';
+
+  // ===== State =====
+  var PER_PAGE = 100;
+  var currentPage = 1;
+  var filteredData = [];
+  var currentSearch = '';
+  var shardCache = {};
+  var currentTable = null;
+
+  // ===== DOM refs =====
+  var searchInput = document.getElementById('searchInput');
+  var counterEl = document.getElementById('counter');
+  var gridEl = document.getElementById('tableGrid');
+  var paginationEl = document.getElementById('pagination');
+  var listView = document.getElementById('listView');
+  var detailView = document.getElementById('detailView');
+  var detailContent = document.getElementById('detailContent');
+  var headerStats = document.getElementById('headerStats');
+
+  // ===== Init =====
+  if (typeof TABELAS_INDICE === 'undefined') {
+    gridEl.innerHTML = '<p style="color:red;padding:20px">Erro: dados/tabelas_indice.js não encontrado.</p>';
+    return;
+  }
+
+  headerStats.textContent = TABELAS_INDICE.length + ' tabelas';
+  filteredData = TABELAS_INDICE;
+  renderList();
+
+  // ===== Search =====
+  var searchTimer = null;
+  searchInput.addEventListener('input', function() {
+    clearTimeout(searchTimer);
+    searchTimer = setTimeout(function() {
+      currentSearch = searchInput.value.trim().toUpperCase();
+      currentPage = 1;
+      filterData();
+      renderList();
+    }, 150);
+  });
+
+  function filterData() {
+    if (!currentSearch) {
+      filteredData = TABELAS_INDICE;
+      return;
+    }
+    var terms = currentSearch.split(/\s+/);
+    filteredData = [];
+    for (var i = 0; i < TABELAS_INDICE.length; i++) {
+      var t = TABELAS_INDICE[i];
+      var searchable = (t.tabela + ' ' + t.descricao + ' ' + t.camposNomes).toUpperCase();
+      var match = true;
+      for (var j = 0; j < terms.length; j++) {
+        if (searchable.indexOf(terms[j]) === -1) { match = false; break; }
+      }
+      if (match) {
+        // Check if matched via field name
+        var matchedField = '';
+        if (t.tabela.toUpperCase().indexOf(currentSearch) === -1 &&
+            t.descricao.toUpperCase().indexOf(currentSearch) === -1) {
+          // Matched via camposNomes
+          var campos = t.camposNomes.split(' ');
+          for (var k = 0; k < campos.length; k++) {
+            if (campos[k].toUpperCase().indexOf(currentSearch) !== -1) {
+              matchedField = campos[k];
+              break;
+            }
+          }
+        }
+        filteredData.push({ data: t, matchedField: matchedField });
+      }
+    }
+    // Unwrap for rendering
+    var temp = [];
+    for (var i = 0; i < filteredData.length; i++) {
+      var item = filteredData[i];
+      if (item.data) {
+        item.data._matchedField = item.matchedField || '';
+        temp.push(item.data);
+      } else {
+        temp.push(item);
+      }
+    }
+    filteredData = temp;
+  }
+
+  // ===== Render List =====
+  function renderList() {
+    var total = filteredData.length;
+    var totalPages = Math.max(1, Math.ceil(total / PER_PAGE));
+    if (currentPage > totalPages) currentPage = totalPages;
+    var start = (currentPage - 1) * PER_PAGE;
+    var end = Math.min(start + PER_PAGE, total);
+    var pageData = filteredData.slice(start, end);
+
+    counterEl.textContent = 'Exibindo ' + (total > 0 ? (start + 1) : 0) + '-' + end + ' de ' + total + ' tabelas';
+
+    var html = '';
+    for (var i = 0; i < pageData.length; i++) {
+      var t = pageData[i];
+      var matchHtml = '';
+      if (t._matchedField) {
+        matchHtml = '<span class="tc-match">🔍 Campo: ' + escapeHtml(t._matchedField) + '</span>';
+      }
+      html += '<div class="table-card" onclick="abrirTabela(\'' + escapeAttr(t.tabela) + '\')">' +
+        '<div class="tc-header">' +
+          '<span class="tc-code">' + highlightText(t.tabela) + '</span>' +
+          '<span class="tc-desc">' + highlightText(t.descricao) + '</span>' +
+        '</div>' +
+        '<div class="tc-meta">' +
+          '<span>Modo: ' + escapeHtml(t.modo) + '</span>' +
+          '<span>Campos: ' + t.qtdCampos + '</span>' +
+          matchHtml +
+        '</div>' +
+      '</div>';
+    }
+    gridEl.innerHTML = html;
+
+    // Pagination
+    renderPagination(totalPages);
+  }
+
+  function renderPagination(totalPages) {
+    if (totalPages <= 1) { paginationEl.innerHTML = ''; return; }
+    var html = '';
+    html += '<button ' + (currentPage === 1 ? 'disabled' : '') + ' onclick="mudarPagina(1)">« Primeira</button>';
+    html += '<button ' + (currentPage === 1 ? 'disabled' : '') + ' onclick="mudarPagina(' + (currentPage - 1) + ')">‹ Anterior</button>';
+
+    var startP = Math.max(1, currentPage - 3);
+    var endP = Math.min(totalPages, currentPage + 3);
+    if (startP > 1) html += '<button disabled>…</button>';
+    for (var p = startP; p <= endP; p++) {
+      html += '<button class="' + (p === currentPage ? 'active' : '') + '" onclick="mudarPagina(' + p + ')">' + p + '</button>';
+    }
+    if (endP < totalPages) html += '<button disabled>…</button>';
+
+    html += '<button ' + (currentPage === totalPages ? 'disabled' : '') + ' onclick="mudarPagina(' + (currentPage + 1) + ')">Próxima ›</button>';
+    html += '<button ' + (currentPage === totalPages ? 'disabled' : '') + ' onclick="mudarPagina(' + totalPages + ')">Última »</button>';
+    paginationEl.innerHTML = html;
+  }
+
+  // ===== Detail View =====
+  window.abrirTabela = function(tabela) {
+    currentTable = tabela;
+    listView.classList.add('hidden');
+    detailView.classList.add('active');
+    detailContent.innerHTML = '<div class="loading"><div class="spinner"></div><p>Carregando detalhes de ' + escapeHtml(tabela) + '...</p></div>';
+    window.scrollTo(0, 0);
+
+    // Determine shard letter
+    var letra = tabela.charAt(0).toUpperCase();
+    if (!/[A-Z]/.test(letra)) letra = 'OUTROS';
+    var varName = 'DETALHES_' + letra;
+
+    if (shardCache[letra]) {
+      renderDetail(tabela, shardCache[letra]);
+    } else {
+      // Load shard dynamically
+      var script = document.createElement('script');
+      script.src = 'dados/detalhes_' + letra + '.js';
+      script.onload = function() {
+        if (window[varName]) {
+          shardCache[letra] = window[varName];
+          renderDetail(tabela, shardCache[letra]);
+        } else {
+          detailContent.innerHTML = '<p style="color:red;padding:20px">Erro: shard detalhes_' + letra + '.js carregou mas variável ' + varName + ' não encontrada.</p>';
+        }
+      };
+      script.onerror = function() {
+        detailContent.innerHTML = '<p style="color:red;padding:20px">Erro ao carregar dados/detalhes_' + letra + '.js</p>';
+      };
+      document.head.appendChild(script);
+    }
+
+    history.pushState({ tabela: tabela }, '', '#' + tabela);
+  };
+
+  function renderDetail(tabela, shard) {
+    var det = shard[tabela];
+    if (!det) {
+      detailContent.innerHTML = '<p style="color:red;padding:20px">Tabela ' + escapeHtml(tabela) + ' não encontrada no shard.</p>';
+      return;
+    }
+
+    var html = '';
+
+    // Header
+    html += '<div class="detail-header">';
+    html += '<h2><span class="dh-code">' + escapeHtml(det.tabela) + '</span> ' + escapeHtml(det.descricao) + '</h2>';
+    html += '<div class="dh-info">';
+    html += '<div class="dh-item"><label>Código</label><span>' + escapeHtml(det.tabela) + '</span></div>';
+    html += '<div class="dh-item"><label>Descrição</label><span>' + escapeHtml(det.descricao) + '</span></div>';
+    html += '<div class="dh-item"><label>Modo</label><span>' + escapeHtml(det.modo === 'C' ? 'Compartilhado (C)' : det.modo === 'E' ? 'Exclusivo (E)' : det.modo) + '</span></div>';
+    html += '<div class="dh-item"><label>Chave Única</label><span style="font-family:monospace;font-size:.85rem">' + escapeHtml(det.unica) + '</span></div>';
+    html += '</div></div>';
+
+    // Indices
+    html += '<div class="section">';
+    html += '<div class="section-title">🔑 Índices (SIX) <span class="count">' + det.indices.length + '</span></div>';
+    if (det.indices.length > 0) {
+      html += '<div class="table-scroll"><table class="idx-table"><thead><tr><th>Ordem</th><th>Chave</th><th>Descrição</th></tr></thead><tbody>';
+      for (var i = 0; i < det.indices.length; i++) {
+        var idx = det.indices[i];
+        html += '<tr><td>' + escapeHtml(idx.ordem) + '</td><td>' + escapeHtml(idx.chave) + '</td><td>' + escapeHtml(idx.descricao) + '</td></tr>';
+      }
+      html += '</tbody></table></div>';
+    } else {
+      html += '<p style="padding:16px;color:var(--text-sec)">Nenhum índice cadastrado.</p>';
+    }
+    html += '</div>';
+
+    // Fields
+    html += '<div class="section">';
+    html += '<div class="section-title">📄 Campos (SX3) <span class="count">' + det.campos.length + '</span></div>';
+    html += '<div class="fields-search"><input type="text" id="fieldSearch" placeholder="Filtrar campos..." oninput="filtrarCampos()"></div>';
+    html += '<div class="table-scroll"><table class="fields-table"><thead><tr>';
+    html += '<th>Ordem</th><th>Campo</th><th>Tipo</th><th>Tam.</th><th>Dec.</th><th>Título</th><th>Descrição</th><th>Contexto</th><th>F3</th><th>Obrigatório</th>';
+    html += '</tr></thead><tbody id="fieldsBody">';
+    for (var i = 0; i < det.campos.length; i++) {
+      html += buildFieldRow(det.campos[i]);
+    }
+    html += '</tbody></table></div></div>';
+
+    detailContent.innerHTML = html;
+
+    // Store fields for filtering
+    window._currentFields = det.campos;
+  }
+
+  function buildFieldRow(c) {
+    var tipoCls = c.tipo.normalize ? c.tipo.normalize('NFD').replace(/[\u0300-\u036f]/g, '') : c.tipo;
+    var r = '<tr>';
+    r += '<td class="num">' + escapeHtml(c.ordem) + '</td>';
+    r += '<td class="mono">' + escapeHtml(c.campo) + '</td>';
+    r += '<td><span class="badge-tipo ' + escapeAttr(tipoCls) + '">' + escapeHtml(c.tipo) + '</span></td>';
+    r += '<td class="num">' + c.tamanho + '</td>';
+    r += '<td class="num">' + c.decimal + '</td>';
+    r += '<td>' + escapeHtml(c.titulo) + '</td>';
+    r += '<td>' + escapeHtml(c.descricao) + '</td>';
+    r += '<td>' + (c.contexto ? '<span class="badge-ctx ' + escapeAttr(c.contexto) + '">' + escapeHtml(c.contexto) + '</span>' : '') + '</td>';
+    r += '<td class="mono">' + escapeHtml(c.f3) + '</td>';
+    r += '<td>' + (c.obrigat === 'Sim' || c.obrigat === 'S' ? '<span class="badge-obrig">Sim</span>' : escapeHtml(c.obrigat)) + '</td>';
+    r += '</tr>';
+    return r;
+  }
+
+  window.filtrarCampos = function() {
+    var search = document.getElementById('fieldSearch').value.trim().toUpperCase();
+    var fields = window._currentFields || [];
+    var body = document.getElementById('fieldsBody');
+    if (!body) return;
+
+    if (!search) {
+      var html = '';
+      for (var i = 0; i < fields.length; i++) html += buildFieldRow(fields[i]);
+      body.innerHTML = html;
+      return;
+    }
+
+    var html = '';
+    for (var i = 0; i < fields.length; i++) {
+      var c = fields[i];
+      var searchable = (c.campo + ' ' + c.titulo + ' ' + c.descricao + ' ' + c.tipo + ' ' + c.f3).toUpperCase();
+      if (searchable.indexOf(search) !== -1) {
+        html += buildFieldRow(c);
+      }
+    }
+    body.innerHTML = html || '<tr><td colspan="10" style="padding:20px;text-align:center;color:var(--text-sec)">Nenhum campo encontrado.</td></tr>';
+  };
+
+  // ===== Navigation =====
+  window.voltarLista = function() {
+    detailView.classList.remove('active');
+    listView.classList.remove('hidden');
+    currentTable = null;
+    history.pushState({}, '', window.location.pathname);
+    window.scrollTo(0, 0);
+  };
+
+  window.mudarPagina = function(p) {
+    currentPage = p;
+    renderList();
+    window.scrollTo(0, 0);
+  };
+
+  // ESC key
+  document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape' && currentTable) {
+      voltarLista();
+    }
+  });
+
+  // Handle browser back/forward
+  window.addEventListener('popstate', function() {
+    var hash = window.location.hash.replace('#', '');
+    if (hash) {
+      abrirTabela(hash);
+    } else if (currentTable) {
+      voltarLista();
+    }
+  });
+
+  // Load from hash on startup
+  if (window.location.hash) {
+    var hash = window.location.hash.replace('#', '');
+    if (hash) abrirTabela(hash);
+  }
+
+  // ===== Helpers =====
+  function escapeHtml(s) {
+    if (!s) return '';
+    return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+  }
+
+  function escapeAttr(s) {
+    return escapeHtml(s);
+  }
+
+  function highlightText(text) {
+    if (!currentSearch || !text) return escapeHtml(text);
+    var escaped = escapeHtml(text);
+    var terms = currentSearch.split(/\s+/);
+    for (var i = 0; i < terms.length; i++) {
+      if (!terms[i]) continue;
+      var regex = new RegExp('(' + terms[i].replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + ')', 'gi');
+      escaped = escaped.replace(regex, '<mark>$1</mark>');
+    }
+    return escaped;
+  }
+
+})();
+</script>
+
+</body>
+</html>
